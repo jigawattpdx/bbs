@@ -18,6 +18,7 @@
       padding: 15px;
       border: 2px solid #33ff33;
       box-shadow: 0 0 20px #0f0;
+      overflow: hidden;
     }
     h2 { color: #66ff66; font-weight: normal; }
     pre { white-space: pre-wrap; line-height: 1.3; }
@@ -39,11 +40,13 @@
     }
     .hidden { display: none; }
 
-    /* ASCII TITLE AUTO-SCALE */
+    /* ASCII TITLE — TRUE AUTO FIT */
     #asciiTitle {
-      font-size: clamp(8px, 2.5vw, 16px);
+      white-space: pre; /* preserve exact ASCII spacing */
+      display: inline-block;
+      transform-origin: top left;
+      font-size: 16px; /* base size for scaling */
       line-height: 1.1;
-      overflow-x: hidden;
     }
 
     /* MOBILE MODE */
@@ -77,7 +80,7 @@
   </style>
 </head>
 <body>
-<div class="screen">
+<div class="screen" id="screenContainer">
 
 <!-- MAIN MENU -->
 <div id="main">
@@ -123,9 +126,12 @@ Enter selection: <span class="blink">_</span>
 <pre>
 LAST THURSDAYS 7-9
 Cult Classics — Portland, OR
+Soundtrack BINGO
+Modest Prizes - Major Glory
 
 THIRD WEDNESDAYS 7-10
 Pharmacy Bar — Portland, OR
+Soundtrack BINGO
 </pre>
 <div class="mobile-menu"><button onclick="show('main')">Back</button></div>
 </div>
@@ -135,6 +141,7 @@ Pharmacy Bar — Portland, OR
 <h2>ABOUT JIGAWATT</h2>
 <pre>
 JIGAWATT spins nothing but
+the greatest and least great
 80s movie soundtracks on vinyl.
 </pre>
 <div class="mobile-menu"><button onclick="show('main')">Back</button></div>
@@ -203,19 +210,33 @@ function show(screen) {
 
 show('main');
 
-// HAPTIC FEEDBACK FOR MOBILE
-function triggerHaptic() {
-  if (navigator.vibrate) {
-    navigator.vibrate(20);
+// TRUE WIDTH-BASED ASCII AUTO FIT
+function autoFitTitle() {
+  const title = document.getElementById('asciiTitle');
+  const container = document.getElementById('screenContainer');
+
+  title.style.transform = 'scale(1)'; // reset
+
+  const containerWidth = container.clientWidth - 30; // padding buffer
+  const titleWidth = title.scrollWidth;
+
+  if (titleWidth > containerWidth) {
+    const scale = containerWidth / titleWidth;
+    title.style.transform = `scale(${scale})`;
   }
 }
 
-// Attach vibration to all buttons
+window.addEventListener('load', autoFitTitle);
+window.addEventListener('resize', autoFitTitle);
+
+// HAPTIC FEEDBACK
+function triggerHaptic() {
+  if (navigator.vibrate) navigator.vibrate(20);
+}
+
 function attachHaptics() {
   const buttons = document.querySelectorAll('button');
-  buttons.forEach(btn => {
-    btn.addEventListener('click', triggerHaptic);
-  });
+  buttons.forEach(btn => btn.addEventListener('click', triggerHaptic));
 }
 
 attachHaptics();
@@ -279,7 +300,7 @@ function nextMidi() {
 }
 
 // Tests
-console.assert(typeof show === 'function');
+console.assert(typeof autoFitTitle === 'function');
 console.assert(crateData.length > 0);
 console.assert(typeof triggerHaptic === 'function');
 </script>
