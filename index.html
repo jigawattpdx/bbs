@@ -199,8 +199,26 @@ Tap play to begin.
     document.querySelectorAll('button').forEach(btn => btn.addEventListener('click', () => navigator.vibrate(20)));
   }
 
+  // FALLBACK CRATE
   const FALLBACK_CRATE = ['The Breakfast Club','Blade Runner','Ghostbusters','Top Gun','Back to the Future'];
   let crateData = [...FALLBACK_CRATE];
+  window.crateData = crateData;
+
+  async function loadCrate() {
+    const url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQYShQQhWawXSGXR-n1132BDjS7Z1EB6K6Kqq8Mi0PIL7ctczcIAMgSfQvrXM9ND-j0FqWoB1Jl9fhZ/pub?output=csv';
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Fetch failed');
+      const text = await res.text();
+      crateData = text.split('\n').map(line => line.trim()).filter(line => line.length);
+      window.crateData = crateData;
+    } catch(e) {
+      console.warn('Falling back to default crate', e);
+      crateData = [...FALLBACK_CRATE];
+    }
+    renderCrate();
+  }
+  window.loadCrate = loadCrate;
 
   function renderCrate() {
     const crateList = document.getElementById('crateList');
@@ -209,15 +227,15 @@ Tap play to begin.
     crateList.textContent = crateData.join('\n');
     crateStatus.textContent = `Records loaded: ${crateData.length}`;
   }
-
-  window.crateData = crateData;
   window.renderCrate = renderCrate;
+
   window.drawBingo = function() {
     const pick = crateData[Math.floor(Math.random() * crateData.length)];
     const bingoText = document.getElementById('bingoText');
     if (bingoText) bingoText.textContent = `NOW CALLING:\n\n${pick}`;
   };
 
+  // MIDI
   window.midiFiles = ['midi/axelfthm.mid'];
   window.midiIndex = 0;
   window.midiPlaying = false;
@@ -225,11 +243,31 @@ Tap play to begin.
   window.toggleMidi = function() { if (typeof MIDIjs !== 'undefined') { if (!window.midiPlaying) { MIDIjs.resume(); window.midiPlaying = true; } else { MIDIjs.pause(); window.midiPlaying = false; } } };
   window.nextMidi = function() { window.midiIndex = (window.midiIndex+1) % window.midiFiles.length; loadMidi(); };
 
+  // Keyboard shortcuts for desktop
+  if (!('ontouchstart' in window)) {
+    document.addEventListener('keydown', e => {
+      const k = e.key.toLowerCase();
+      if (k === '1') show('gigs');
+      if (k === '2') show('about');
+      if (k === '3') show('crate');
+      if (k === '4') show('bingo');
+      if (k === '5') { show('midi'); loadMidi(); }
+      if (k === 'c') show('contact');
+      if (k === 'b') show('main');
+      if (k === 'q') alert('NO CARRIER');
+      if (!screens.bingo.classList.contains('hidden') && k === 'n') drawBingo();
+      if (!screens.midi.classList.contains('hidden')) {
+        if (k === 'p') toggleMidi();
+        if (k === 'n') nextMidi();
+      }
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', function() {
     show('main');
     autoFitTitle();
     attachHaptics();
-    renderCrate();
+    loadCrate();
   });
 
   window.addEventListener('resize', autoFitTitle);
