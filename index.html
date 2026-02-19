@@ -94,6 +94,33 @@ Enter selection: <span class="blink">_</span>
 
 </div>
 
+<!-- GIGS -->
+<div id="gigs" class="hidden">
+<h2>LIVE GIG SCHEDULE</h2>
+<pre>
+LAST THURSDAYS 7-9
+Cult Classics — Portland, OR
+Soundtrack BINGO
+Modest Prizes - Major Glory
+
+THIRD WEDNESDAYS 7-10
+Pharmacy Bar — Portland, OR
+Soundtrack BINGO
+</pre>
+<div class="mobile-menu"><button class="btn" onclick="show('main')">Back</button></div>
+</div>
+
+<!-- ABOUT -->
+<div id="about" class="hidden">
+<h2>ABOUT JIGAWATT</h2>
+<pre>
+JIGAWATT spins nothing but
+the greatest and least great
+80s movie soundtracks on vinyl.
+</pre>
+<div class="mobile-menu"><button class="btn" onclick="show('main')">Back</button></div>
+</div>
+
 <!-- CRATE -->
 <div id="crate" class="hidden">
 <h2>VINYL CRATE</h2>
@@ -102,53 +129,76 @@ Enter selection: <span class="blink">_</span>
 <div class="mobile-menu"><button class="btn" onclick="show('main')">Back</button></div>
 </div>
 
+<!-- BINGO -->
+<div id="bingo" class="hidden">
+<h2>SOUNDTRACK BINGO</h2>
+<pre id="bingoText">
+Tap button to draw.
+</pre>
+<div class="mobile-menu">
+  <button class="btn" onclick="drawBingo()">Draw Title</button>
+  <button class="btn" onclick="show('main')">Back</button>
+</div>
+</div>
+
+<!-- MIDI -->
+<div id="midi" class="hidden">
+<h2>MIDI JUKEBOX</h2>
+<pre id="midiText">
+Tap play to begin.
+</pre>
+<div class="mobile-menu">
+  <button class="btn" onclick="toggleMidi()">Play / Pause</button>
+  <button class="btn" onclick="nextMidi()">Next Track</button>
+  <button class="btn" onclick="show('main')">Back</button>
+</div>
+</div>
+
+<!-- CONTACT -->
+<div id="contact" class="hidden">
+<h2>CONTACT</h2>
+<pre>
+<a href="mailto:jigawattpdx@gmail.com">jigawattpdx@gmail.com</a>
+</pre>
+<div class="mobile-menu"><button class="btn" onclick="show('main')">Back</button></div>
+</div>
+
+</div>
+
 <script src="https://www.midijs.net/lib/midi.js"></script>
 <script>
 (function() {
   const screens = {
     main: document.getElementById('main'),
-    crate: document.getElementById('crate'),
     gigs: document.getElementById('gigs'),
     about: document.getElementById('about'),
+    crate: document.getElementById('crate'),
     bingo: document.getElementById('bingo'),
     midi: document.getElementById('midi'),
     contact: document.getElementById('contact')
   };
 
   function show(screen) {
-    Object.values(screens).forEach(s => s.classList.add('hidden'));
-    screens[screen].classList.remove('hidden');
+    Object.values(screens).forEach(s => s && s.classList.add('hidden'));
+    if (screens[screen]) screens[screen].classList.remove('hidden');
   }
+  window.show = show;
 
-  show('main');
-
-  // ASCII title auto-fit
   function autoFitTitle() {
     const title = document.getElementById('asciiTitle');
-    if (!title) return;
     const container = document.getElementById('screenContainer');
-    if (!container) return;
-
+    if (!title || !container) return;
     title.style.transform = 'scale(1)';
     const scale = Math.min(1, (container.clientWidth - 30) / title.scrollWidth);
     title.style.transform = `scale(${scale})`;
     title.style.transformOrigin = 'top center';
   }
 
-  window.addEventListener('load', autoFitTitle);
-  window.addEventListener('resize', autoFitTitle);
-  window.addEventListener('orientationchange', autoFitTitle);
-
-  // Haptic feedback
   function attachHaptics() {
     if (!('vibrate' in navigator)) return;
-    document.querySelectorAll('.btn').forEach(btn => {
-      btn.addEventListener('click', () => navigator.vibrate(20));
-    });
+    document.querySelectorAll('button').forEach(btn => btn.addEventListener('click', () => navigator.vibrate(20)));
   }
-  attachHaptics();
 
-  // Crate
   const FALLBACK_CRATE = ['The Breakfast Club','Blade Runner','Ghostbusters','Top Gun','Back to the Future'];
   let crateData = [...FALLBACK_CRATE];
 
@@ -160,25 +210,30 @@ Enter selection: <span class="blink">_</span>
     crateStatus.textContent = `Records loaded: ${crateData.length}`;
   }
 
-  renderCrate();
-
-  // Export functions globally for buttons
-  window.show = show;
+  window.crateData = crateData;
+  window.renderCrate = renderCrate;
   window.drawBingo = function() {
     const pick = crateData[Math.floor(Math.random() * crateData.length)];
     const bingoText = document.getElementById('bingoText');
     if (bingoText) bingoText.textContent = `NOW CALLING:\n\n${pick}`;
   };
 
-  // MIDI (fallback if MIDIjs unavailable)
   window.midiFiles = ['midi/axelfthm.mid'];
   window.midiIndex = 0;
   window.midiPlaying = false;
-
   window.loadMidi = function() { if (typeof MIDIjs !== 'undefined') { MIDIjs.play(window.midiFiles[window.midiIndex]); window.midiPlaying = true; } };
   window.toggleMidi = function() { if (typeof MIDIjs !== 'undefined') { if (!window.midiPlaying) { MIDIjs.resume(); window.midiPlaying = true; } else { MIDIjs.pause(); window.midiPlaying = false; } } };
   window.nextMidi = function() { window.midiIndex = (window.midiIndex+1) % window.midiFiles.length; loadMidi(); };
 
+  document.addEventListener('DOMContentLoaded', function() {
+    show('main');
+    autoFitTitle();
+    attachHaptics();
+    renderCrate();
+  });
+
+  window.addEventListener('resize', autoFitTitle);
+  window.addEventListener('orientationchange', autoFitTitle);
 })();
 </script>
 </body>
