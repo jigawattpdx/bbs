@@ -40,43 +40,17 @@
     }
     .hidden { display: none; }
 
-    /* ASCII TITLE — TRUE AUTO FIT */
     #asciiTitle {
-      white-space: pre; /* preserve exact ASCII spacing */
+      white-space: pre;
       display: inline-block;
-      transform-origin: top left;
-      font-size: 16px; /* base size for scaling */
+      font-size: 16px;
       line-height: 1.1;
     }
 
-    /* MOBILE MODE */
-    .mobile-menu {
-      display: none;
-      margin-top: 15px;
-      border-top: 1px solid #33ff33;
-      padding-top: 10px;
-    }
-    .mobile-menu button {
-      background: black;
-      color: #33ff33;
-      border: 1px solid #33ff33;
-      padding: 12px;
-      margin: 6px 0;
-      width: 100%;
-      font-family: inherit;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    .mobile-menu button:active {
-      background: #003300;
-      transform: scale(0.98);
-    }
-
-    @media (max-width: 700px) {
-      .screen { margin: 0; border: none; box-shadow: none; }
-      body::after { display: none; }
-      .mobile-menu { display: block; }
-    }
+    .mobile-menu { display: none; margin-top: 15px; border-top: 1px solid #33ff33; padding-top: 10px; }
+    .mobile-menu button { background: black; color: #33ff33; border: 1px solid #33ff33; padding: 12px; margin: 6px 0; width: 100%; font-family: inherit; font-size: 16px; cursor: pointer; }
+    .mobile-menu button:active { background: #003300; transform: scale(0.98); }
+    @media (max-width: 700px) { .screen { margin: 0; border: none; box-shadow: none; } body::after { display: none; } .mobile-menu { display: block; } }
   </style>
 </head>
 <body>
@@ -110,41 +84,14 @@ Enter selection: <span class="blink">_</span>
 </pre>
 
 <div class="mobile-menu" id="mobileMenu">
-  <button onclick="show('gigs')">Gig Schedule</button>
-  <button onclick="show('about')">About</button>
-  <button onclick="show('crate')">Vinyl Crate</button>
-  <button onclick="show('bingo')">Soundtrack Bingo</button>
-  <button onclick="show('midi'); loadMidi();">MIDI Jukebox</button>
-  <button onclick="show('contact')">Contact</button>
+  <button class="btn" onclick="show('gigs')">Gig Schedule</button>
+  <button class="btn" onclick="show('about')">About</button>
+  <button class="btn" onclick="show('crate')">Vinyl Crate</button>
+  <button class="btn" onclick="show('bingo')">Soundtrack Bingo</button>
+  <button class="btn" onclick="show('midi'); loadMidi();">MIDI Jukebox</button>
+  <button class="btn" onclick="show('contact')">Contact</button>
 </div>
 
-</div>
-
-<!-- GIGS -->
-<div id="gigs" class="hidden">
-<h2>LIVE GIG SCHEDULE</h2>
-<pre>
-LAST THURSDAYS 7-9
-Cult Classics — Portland, OR
-Soundtrack BINGO
-Modest Prizes - Major Glory
-
-THIRD WEDNESDAYS 7-10
-Pharmacy Bar — Portland, OR
-Soundtrack BINGO
-</pre>
-<div class="mobile-menu"><button onclick="show('main')">Back</button></div>
-</div>
-
-<!-- ABOUT -->
-<div id="about" class="hidden">
-<h2>ABOUT JIGAWATT</h2>
-<pre>
-JIGAWATT spins nothing but
-the greatest and least great
-80s movie soundtracks on vinyl.
-</pre>
-<div class="mobile-menu"><button onclick="show('main')">Back</button></div>
 </div>
 
 <!-- CRATE -->
@@ -152,157 +99,87 @@ the greatest and least great
 <h2>VINYL CRATE</h2>
 <pre id="crateStatus">Initializing crate subsystem...</pre>
 <pre id="crateList"></pre>
-<div class="mobile-menu"><button onclick="show('main')">Back</button></div>
-</div>
-
-<!-- BINGO -->
-<div id="bingo" class="hidden">
-<h2>SOUNDTRACK BINGO</h2>
-<pre id="bingoText">
-Tap button to draw.
-</pre>
-<div class="mobile-menu">
-  <button onclick="drawBingo()">Draw Title</button>
-  <button onclick="show('main')">Back</button>
-</div>
-</div>
-
-<!-- MIDI -->
-<div id="midi" class="hidden">
-<h2>MIDI JUKEBOX</h2>
-<pre id="midiText">
-Tap play to begin.
-</pre>
-<div class="mobile-menu">
-  <button onclick="toggleMidi()">Play / Pause</button>
-  <button onclick="nextMidi()">Next Track</button>
-  <button onclick="show('main')">Back</button>
-</div>
-</div>
-
-<!-- CONTACT -->
-<div id="contact" class="hidden">
-<h2>CONTACT</h2>
-<pre>
-<a href="mailto:jigawattpdx@gmail.com">jigawattpdx@gmail.com</a>
-</pre>
-<div class="mobile-menu"><button onclick="show('main')">Back</button></div>
-</div>
-
+<div class="mobile-menu"><button class="btn" onclick="show('main')">Back</button></div>
 </div>
 
 <script src="https://www.midijs.net/lib/midi.js"></script>
 <script>
-const screens = {
-  main: document.getElementById('main'),
-  gigs: document.getElementById('gigs'),
-  about: document.getElementById('about'),
-  crate: document.getElementById('crate'),
-  bingo: document.getElementById('bingo'),
-  midi: document.getElementById('midi'),
-  contact: document.getElementById('contact')
-};
+(function() {
+  const screens = {
+    main: document.getElementById('main'),
+    crate: document.getElementById('crate'),
+    gigs: document.getElementById('gigs'),
+    about: document.getElementById('about'),
+    bingo: document.getElementById('bingo'),
+    midi: document.getElementById('midi'),
+    contact: document.getElementById('contact')
+  };
 
-function show(screen) {
-  Object.values(screens).forEach(s => s.classList.add('hidden'));
-  screens[screen].classList.remove('hidden');
-}
-
-show('main');
-
-// TRUE WIDTH-BASED ASCII AUTO FIT
-function autoFitTitle() {
-  const title = document.getElementById('asciiTitle');
-  const container = document.getElementById('screenContainer');
-
-  title.style.transform = 'scale(1)'; // reset
-
-  const containerWidth = container.clientWidth - 30; // padding buffer
-  const titleWidth = title.scrollWidth;
-
-  if (titleWidth > containerWidth) {
-    const scale = containerWidth / titleWidth;
-    title.style.transform = `scale(${scale})`;
+  function show(screen) {
+    Object.values(screens).forEach(s => s.classList.add('hidden'));
+    screens[screen].classList.remove('hidden');
   }
-}
 
-window.addEventListener('load', autoFitTitle);
-window.addEventListener('resize', autoFitTitle);
+  show('main');
 
-// HAPTIC FEEDBACK
-function triggerHaptic() {
-  if (navigator.vibrate) navigator.vibrate(20);
-}
+  // ASCII title auto-fit
+  function autoFitTitle() {
+    const title = document.getElementById('asciiTitle');
+    if (!title) return;
+    const container = document.getElementById('screenContainer');
+    if (!container) return;
 
-function attachHaptics() {
-  const buttons = document.querySelectorAll('button');
-  buttons.forEach(btn => btn.addEventListener('click', triggerHaptic));
-}
+    title.style.transform = 'scale(1)';
+    const scale = Math.min(1, (container.clientWidth - 30) / title.scrollWidth);
+    title.style.transform = `scale(${scale})`;
+    title.style.transformOrigin = 'top center';
+  }
 
-attachHaptics();
+  window.addEventListener('load', autoFitTitle);
+  window.addEventListener('resize', autoFitTitle);
+  window.addEventListener('orientationchange', autoFitTitle);
 
-// Keyboard only if not touch device
-if (!('ontouchstart' in window)) {
-  document.addEventListener('keydown', e => {
-    const k = e.key.toLowerCase();
-    if (k === '1') show('gigs');
-    if (k === '2') show('about');
-    if (k === '3') show('crate');
-    if (k === '4') show('bingo');
-    if (k === '5') { show('midi'); loadMidi(); }
-    if (k === 'c') show('contact');
-    if (k === 'b') show('main');
-    if (k === 'q') alert('NO CARRIER');
-    if (!screens.bingo.classList.contains('hidden') && k === 'n') drawBingo();
-    if (!screens.midi.classList.contains('hidden')) {
-      if (k === 'p') toggleMidi();
-      if (k === 'n') nextMidi();
-    }
-  });
-}
+  // Haptic feedback
+  function attachHaptics() {
+    if (!('vibrate' in navigator)) return;
+    document.querySelectorAll('.btn').forEach(btn => {
+      btn.addEventListener('click', () => navigator.vibrate(20));
+    });
+  }
+  attachHaptics();
 
-// Crate fallback only
-const FALLBACK_CRATE = [
-  'The Breakfast Club','Blade Runner','Ghostbusters','Top Gun','Back to the Future'
-];
-let crateData = [...FALLBACK_CRATE];
+  // Crate
+  const FALLBACK_CRATE = ['The Breakfast Club','Blade Runner','Ghostbusters','Top Gun','Back to the Future'];
+  let crateData = [...FALLBACK_CRATE];
 
-function renderCrate() {
-  document.getElementById('crateList').textContent = crateData.join("\n");
-  document.getElementById('crateStatus').textContent = `Records loaded: ${crateData.length}`;
-}
-renderCrate();
+  function renderCrate() {
+    const crateList = document.getElementById('crateList');
+    const crateStatus = document.getElementById('crateStatus');
+    if (!crateList || !crateStatus) return;
+    crateList.textContent = crateData.join('\n');
+    crateStatus.textContent = `Records loaded: ${crateData.length}`;
+  }
 
-function drawBingo() {
-  const pick = crateData[Math.floor(Math.random() * crateData.length)];
-  document.getElementById('bingoText').textContent = `NOW CALLING:\n\n${pick}`;
-}
+  renderCrate();
 
-const midiFiles = ['midi/axelfthm.mid'];
-let midiIndex = 0;
-let midiPlaying = false;
+  // Export functions globally for buttons
+  window.show = show;
+  window.drawBingo = function() {
+    const pick = crateData[Math.floor(Math.random() * crateData.length)];
+    const bingoText = document.getElementById('bingoText');
+    if (bingoText) bingoText.textContent = `NOW CALLING:\n\n${pick}`;
+  };
 
-function loadMidi() {
-  if (typeof MIDIjs === 'undefined') return;
-  MIDIjs.play(midiFiles[midiIndex]);
-  midiPlaying = true;
-}
+  // MIDI (fallback if MIDIjs unavailable)
+  window.midiFiles = ['midi/axelfthm.mid'];
+  window.midiIndex = 0;
+  window.midiPlaying = false;
 
-function toggleMidi() {
-  if (typeof MIDIjs === 'undefined') return;
-  if (!midiPlaying) { MIDIjs.resume(); midiPlaying = true; }
-  else { MIDIjs.pause(); midiPlaying = false; }
-}
+  window.loadMidi = function() { if (typeof MIDIjs !== 'undefined') { MIDIjs.play(window.midiFiles[window.midiIndex]); window.midiPlaying = true; } };
+  window.toggleMidi = function() { if (typeof MIDIjs !== 'undefined') { if (!window.midiPlaying) { MIDIjs.resume(); window.midiPlaying = true; } else { MIDIjs.pause(); window.midiPlaying = false; } } };
+  window.nextMidi = function() { window.midiIndex = (window.midiIndex+1) % window.midiFiles.length; loadMidi(); };
 
-function nextMidi() {
-  midiIndex = (midiIndex + 1) % midiFiles.length;
-  loadMidi();
-}
-
-// Tests
-console.assert(typeof autoFitTitle === 'function');
-console.assert(crateData.length > 0);
-console.assert(typeof triggerHaptic === 'function');
+})();
 </script>
 </body>
 </html>
